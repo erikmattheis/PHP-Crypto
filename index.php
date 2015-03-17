@@ -1,16 +1,17 @@
 <?php
 
-function __autoload($class_name) {
-	include $class_name . '.php';
-}
+/* cryptsy's JSON file is large enough to require extra processing time and memory */
+set_time_limit (120);
+ini_set('memory_limit', '264M');
 
 require_once("cfg.php");
 require_once("io/create_tables.php");
-require_once("io/APICall_Bter.php");
+/* require_once("io/APICall_Bter.php"); */
+require_once("io/APICall_Cryptsy.php");
 require_once("io/record_prices.php");
 require_once("model/get_pair.php");
 
-$data = callMethod('tickers');
+$data = callMethod('marketdatav2');
 
 foreach ($data as $market) {
 
@@ -41,8 +42,8 @@ foreach ($data as $market) {
 <?php
 
 	$num_minutes = 60*24*5;
-	$base_currency_code = 'btc';
-	$quote_currency_code = 'cny';
+	$base_currency_code = 'DVC';
+	$quote_currency_code = 'XRP';
 	
 	$result = getHistory($base_currency_code, $quote_currency_code, $num_minutes);
 
@@ -75,7 +76,11 @@ foreach ($data as $market) {
 			. ' data: [';
 	while ($row = $result->fetch_assoc()) {
 
+		if (is_numeric($row['bid_price']) &&  is_numeric($row['ask_price'])) {
+
 			$highchartsString .= '[' . (strtotime($row['price_time']) * 1000) . ',' . $row['bid_price'] . ',' . $row['ask_price'] . '],';
+
+		}
 
 	}
 
